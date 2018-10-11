@@ -81,9 +81,11 @@ def changed_regs(old_regs, new_regs):
 			# regs[k] = new_regs[k]
 	return regs
 
-def print_insn_detail(insn):
-    # print address, mnemonic and operands
-    print("0x%x:\t%s\t%s" % (insn.address, insn.mnemonic, insn.op_str))
+def print_insn_detail(insn, insn_bytes):
+    # print address, insn bytes, mnemonic and operands
+    insn_bytes_str = binascii.hexlify(insn_bytes[:insn.size])
+    insn_bytes_str = ' '.join(insn_bytes_str[i:i+2] for i in range(0, len(insn_bytes_str), 2))
+    print("0x%x: %s\t%s\t%s" % (insn.address, insn_bytes_str, insn.mnemonic, insn.op_str))
 
     return
 
@@ -194,8 +196,13 @@ def hook_code(uc, address, size, user_data):
 	ch_regs = changed_regs(saved_regs, new_regs)
 	ch_regs.pop(UC_ARM_REG_PC, None)
 	dump_regs_changed(ch_regs)
-	print(">>> Tracing instruction at 0x%x, instruction size = 0x%x" %(address, size))
 	is_thumb = new_regs[UC_ARM_REG_CPSR] & (1 << 5) != 0
+	mode_str = None
+	if is_thumb:
+		mode_str = "Thumb"
+	else:
+		mode_str = "ARM"
+	print(">>> Tracing instruction at 0x%x, instruction size = 0x%x, mode: %s" % (address, size, mode_str))
 	pc = new_regs[UC_ARM_REG_PC]
 	insn_bytes = uc.mem_read(pc, 4)
 	insn = None
@@ -203,7 +210,7 @@ def hook_code(uc, address, size, user_data):
 		insn = list(cs_thumb.disasm(insn_bytes, pc))[0]
 	else:
 		insn = list(cs_arm.disasm(insn_bytes, pc))[0]
-	print_insn_detail(insn)
+	print_insn_detail(insn, insn_bytes)
 	saved_regs = new_regs
 
 def hook_usb_send(uc, address, size, user_data):
@@ -248,7 +255,7 @@ def hook_mem_access(uc, access, address, size, value, user_data):
 		print(">>> Memory is being WRITE at 0x%08x, data size = %u, data value = 0x%08x, old value = 0x%08x" \
 				%(address, size, value, old_val))
 		if address == PMC_BASE and value & (1 << 4) != 0:
-			print(">>> PMC reset issues, stopping emu")
+			print(">>> PMC reset issued, stopping emu")
 			uc.emu_stop()
 		if address == PMC_BASE + PMC_SCRATCH0:
 			print(">>> PMC_SCRATCH0 written")
