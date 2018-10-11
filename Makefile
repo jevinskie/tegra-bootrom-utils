@@ -24,7 +24,7 @@ OBJS += $(addprefix $(BUILD)/$(TARGET)/, \
 
 ENTRY_POINT_ADDRESS := 0x4000A000
 
-ARCH := -march=armv4t -mtune=arm7tdmi -mthumb -mthumb-interwork -msingle-pic-base -mpic-data-is-text-relative -mno-long-calls -masm-syntax-unified
+ARCH := -march=armv4t -mtune=arm7tdmi -mthumb -mthumb-interwork -masm-syntax-unified
 CUSTOMDEFINES := -DBLVERSIONMJ=$(BLVERSION_MAJOR) -DBLVERSIONMN=$(BLVERSION_MINOR) -DENTRY_POINT_ADDRESS=$(ENTRY_POINT_ADDRESS)
 CUSTOMDEFINES += -DDEBUG
 CFLAGS = $(ARCH) -Os -g -nostdlib -ffunction-sections -fdata-sections -fomit-frame-pointer -fno-inline -std=gnu11 -Wall $(CUSTOMDEFINES)
