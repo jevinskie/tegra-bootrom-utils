@@ -11,10 +11,11 @@ SECTIONS {
 		*(.rodata*);
 	}
 	. = ALIGN(0x10);
+	__bss_start = .;
 	.bss : {
-		__bss_start = .;
 		*(COMMON)
 		*(.bss*)
-		__bss_end = .;
 	}
+	__bss_end = .;
+	__end__ = .;
 }
