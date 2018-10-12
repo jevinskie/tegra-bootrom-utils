@@ -2,6 +2,7 @@
 
     .section ".text"
     .code 32
+#if 0
     .globl say_hello
     .type say_hello, %function
 say_hello:
@@ -17,12 +18,15 @@ say_hello:
     add sp, sp, #4
     pop {r1}
     bx r1
+#endif
+
+    # .section ".data"
 
     .globl  hello_str
     .type   hello_str, %object
     .size   hello_str, Lhello_str_end - hello_str
     .align 4
 hello_str:
-    .asciz "hello, world"
+    .asciz "hello, worlz"
 Lhello_str_end:
     .equ    hello_str_len, . - hello_str

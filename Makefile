@@ -17,6 +17,7 @@ OBJS = $(addprefix $(BUILD)/$(TARGET)/, \
 	main.o \
 	usb.o \
 	hello.o \
+	dummy.o \
 )
 
 OBJS += $(addprefix $(BUILD)/$(TARGET)/, \
@@ -27,7 +28,7 @@ ENTRY_POINT_ADDRESS := 0x4000A000
 ARCH := -mcpu=arm7tdmi -mthumb -mthumb-interwork -masm-syntax-unified
 CUSTOMDEFINES := -DBLVERSIONMJ=$(BLVERSION_MAJOR) -DBLVERSIONMN=$(BLVERSION_MINOR) -DENTRY_POINT_ADDRESS=$(ENTRY_POINT_ADDRESS)
 CUSTOMDEFINES += -DDEBUG
-CFLAGS = $(ARCH) -Os -g -nostdlib -ffunction-sections -fdata-sections -fomit-frame-pointer -fno-inline -std=gnu11 -Wall $(CUSTOMDEFINES)
+CFLAGS = $(ARCH) -Os -g -nostdlib -ffunction-sections -fdata-sections -fomit-frame-pointer -fno-inline -std=gnu11 -Wall -Wextra $(CUSTOMDEFINES)
 LDFLAGS = $(ARCH) -nostartfiles -lgcc -Wl,--nmagic,--gc-sections,--defsym,LOAD_ADDR=$(ENTRY_POINT_ADDRESS) 
 
 .PHONY: all clean

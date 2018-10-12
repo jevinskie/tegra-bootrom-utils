@@ -16,7 +16,7 @@ _start:
     ldr r0, =__bss_start
     mov r1, #0
     ldr r2, =__bss_end
-    sub r2, r0, r0
+    sub r2, r2, r0
     bl memset
     bl main
     ldr r1, =PMC(PMC_SCRATCH0)
