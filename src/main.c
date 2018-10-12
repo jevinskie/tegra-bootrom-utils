@@ -6,7 +6,7 @@
 
 // __attribute__((aligned(0x100)))
 // __attribute__((used))
-// static const char hello[] = "hello, world";
+static const char hello[] = "hello, world";
 
 extern void say_hello(void);
 
@@ -29,9 +29,9 @@ int main(void) {
 	// sink(hello, sizeof(hello));
 	// memcpy((void *)0x40003000, hello, sizeof(hello));
 	// usb_send((void *)0x40003000, sizeof(hello));
-	// usb_send(hello, sizeof(hello));
-	// usb_send(&hello, sizeof(hello));
+	usb_send(hello, sizeof(hello));
+	usb_send(&hello, sizeof(hello));
 	// say_hello();
-	// return (int)dummy + (int)hello;
-	return (int)dummy;
+	return (int)dummy + (int)hello;
+	// return (int)dummy;
 }
