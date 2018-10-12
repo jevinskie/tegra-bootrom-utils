@@ -13,10 +13,12 @@ SOURCEDIR = src
 VPATH = $(dir $(wildcard ./$(SOURCEDIR)/*/)) $(dir $(wildcard ./$(SOURCEDIR)/*/*/))
 
 OBJS = $(addprefix $(BUILD)/$(TARGET)/, \
-	start.o \
+	_start.o \
 	main.o \
 	usb.o \
 	_exit.o \
+	stdio-bits.o \
+	raise.o \
 )
 
 OBJS += $(addprefix $(BUILD)/$(TARGET)/, \
@@ -27,8 +29,8 @@ ENTRY_POINT_ADDRESS := 0x4000A000
 ARCH := -mcpu=arm7tdmi -mthumb -mthumb-interwork -masm-syntax-unified
 CUSTOMDEFINES := -DBLVERSIONMJ=$(BLVERSION_MAJOR) -DBLVERSIONMN=$(BLVERSION_MINOR) -DENTRY_POINT_ADDRESS=$(ENTRY_POINT_ADDRESS)
 CUSTOMDEFINES += -DDEBUG
-CFLAGS = $(ARCH) -Os -g -nostdlib -ffunction-sections -fdata-sections -fomit-frame-pointer -fno-inline -std=gnu11 -Wall -Wextra $(CUSTOMDEFINES)
-LDFLAGS = $(ARCH) -nostartfiles -lgcc -Wl,--nmagic,--gc-sections,--defsym,LOAD_ADDR=$(ENTRY_POINT_ADDRESS),-z,muldefs
+CFLAGS = $(ARCH) -Os -g -nostdlib -ffunction-sections -fdata-sections -fomit-frame-pointer -fno-inline -std=gnu11 -Wall -Wextra -nostdinc -isystem /opt/devkitpro/devkitARM/bin/../lib/gcc/arm-none-eabi/8.1.0/include -isystem /opt/devkitpro/devkitARM/bin/../lib/gcc/arm-none-eabi/8.1.0/include-fixed -isystem /Users/jevin/code/tegra/libc/prefix/lib/newlib-nano/arm-none-eabi/include $(CUSTOMDEFINES)
+LDFLAGS = $(ARCH) -L /Users/jevin/code/tegra/libc/prefix/lib/newlib-nano/arm-none-eabi/lib/thumb -lc -lgcc -Wl,--nmagic,--gc-sections,--defsym,LOAD_ADDR=$(ENTRY_POINT_ADDRESS),-z,muldefs
 
 .PHONY: all clean
 

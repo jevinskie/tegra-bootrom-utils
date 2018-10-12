@@ -30,6 +30,7 @@ PMC_SCRATCH1 = 0x54
 
 FOURK_ALIGN_MASK = 0xFFFFF000
 
+min_sp = 0xFFFFFFFF
 
 reg_ids = (UC_ARM_REG_APSR, UC_ARM_REG_APSR_NZCV, UC_ARM_REG_CPSR, UC_ARM_REG_LR, UC_ARM_REG_PC, UC_ARM_REG_SP, UC_ARM_REG_SPSR, UC_ARM_REG_R0, UC_ARM_REG_R1, UC_ARM_REG_R2, UC_ARM_REG_R3, UC_ARM_REG_R4, UC_ARM_REG_R5, UC_ARM_REG_R6, UC_ARM_REG_R7, UC_ARM_REG_R8, UC_ARM_REG_R9, UC_ARM_REG_R10, UC_ARM_REG_R11, UC_ARM_REG_R12)
 
@@ -191,8 +192,9 @@ def hook_block(uc, address, size, user_data):
 
 # callback for tracing instructions
 def hook_code(uc, address, size, user_data):
-	global saved_regs
+	global saved_regs, min_sp
 	new_regs = all_regs(uc)
+	min_sp = min(min_sp, new_regs[UC_ARM_REG_SP])
 	ch_regs = changed_regs(saved_regs, new_regs)
 	ch_regs.pop(UC_ARM_REG_PC, None)
 	dump_regs_changed(ch_regs)
@@ -308,6 +310,8 @@ def main(argv):
 		uc.mem_write(RCM_PAYLOAD_ADDR, binbuf)
 
 		uc.emu_start(RCM_PAYLOAD_ADDR, len(binbuf))
+
+		print("Minimum SP: 0x%08x" % min_sp)
 
 	except UcError as e:
 		print("ERROR: %s" % e)

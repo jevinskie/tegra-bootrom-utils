@@ -3,9 +3,9 @@
 	.section ".text"
 
     .code 16
-    .globl ___exit
-    .type ___exit, %function
-___exit:
+    .globl _exit
+    .type _exit, %function
+_exit:
     ldr r1, =PMC(PMC_SCRATCH0)
     str r0, [r1, #4]
     mov r2, #(1 << 1)

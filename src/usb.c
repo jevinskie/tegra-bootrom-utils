@@ -1,6 +1,6 @@
 #include "usb.h"
 
-#include <sys/iosupport.h>
+// #include <sys/iosupport.h>
 
 #define USB_RECV_BUF 0x40003000
 #define USB_XFER_MAX 0x1000
@@ -32,7 +32,7 @@ int usb_recv(void *buf, size_t size) {
 	return usb_recv_w_ret_len(buf, size, &dummy_ret_len);
 }
 
-#if 1
+#if 0
 
 static ssize_t usb_write(struct _reent *r, void *fd, const char *ptr, size_t len) {
 	(void)r;
