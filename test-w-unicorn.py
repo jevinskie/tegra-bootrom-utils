@@ -60,11 +60,11 @@ saved_regs = None
 
 def dump_regs(regs):
 	for k in regs.keys():
-		print("\t%s: 0x%08x" % (reg_names[k], regs[k]))
+		print("\t%s:\t0x%08x" % (reg_names[k], regs[k]))
 
 def dump_regs_changed(regs):
 	for k in regs.keys():
-		print("\t%s: 0x%08x -> 0x%08x" % (reg_names[k], regs[k]['old'], regs[k]['new']))
+		print("\t%s:\t0x%08x -> 0x%08x" % (reg_names[k], regs[k]['old'], regs[k]['new']))
 
 def all_regs(uc):
 	reg_vals = uc.reg_read_batch(reg_ids)
@@ -83,7 +83,7 @@ def changed_regs(old_regs, new_regs):
 
 def print_insn_detail(insn, insn_bytes):
     # print address, insn bytes, mnemonic and operands
-    insn_bytes_str = binascii.hexlify(insn_bytes[:insn.size])
+    insn_bytes_str = binascii.hexlify(insn_bytes)
     insn_bytes_str = ' '.join(insn_bytes_str[i:i+2] for i in range(0, len(insn_bytes_str), 2))
     print("0x%x: %s\t%s\t%s" % (insn.address, insn_bytes_str, insn.mnemonic, insn.op_str))
 
@@ -204,7 +204,7 @@ def hook_code(uc, address, size, user_data):
 		mode_str = "ARM"
 	print(">>> Tracing instruction at 0x%x, instruction size = 0x%x, mode: %s" % (address, size, mode_str))
 	pc = new_regs[UC_ARM_REG_PC]
-	insn_bytes = uc.mem_read(pc, 4)
+	insn_bytes = uc.mem_read(pc, size)
 	insn = None
 	if is_thumb:
 		insn = list(cs_thumb.disasm(insn_bytes, pc))[0]
@@ -221,9 +221,9 @@ def hook_usb_send(uc, address, size, user_data):
 	buf = uc.mem_read(buf_ptr, size)
 	try:
 		buf_str = buf.decode('utf-8')
-		print(">>> \tbuf: '%s' %s" % (buf_str, binascii.hexlify(buf)))
+		print(">>> \tbuf:\t'%s' %s" % (buf_str, binascii.hexlify(buf)))
 	except UnicodeError:
-		print(">>> \tbuf: %s" % binascii.hexlify(buf))
+		print(">>> \tbuf:\t%s" % binascii.hexlify(buf))
 	size_sent = struct.pack('<I', size)
 	uc.mem_write(size_sent_ptr, size_sent)
 	new_regs = all_regs(uc)
@@ -231,6 +231,7 @@ def hook_usb_send(uc, address, size, user_data):
 	ch_regs.pop(UC_ARM_REG_PC, None)
 	dump_regs_changed(ch_regs)
 	saved_regs = new_regs
+	uc.setdbg()
 	uc.reg_write(UC_ARM_REG_R0, 0)
 	uc.reg_write(UC_ARM_REG_PC, lr)
 
@@ -267,6 +268,8 @@ def hook_mem_access(uc, access, address, size, value, user_data):
 
 def main(argv):
 	global saved_regs
+
+	# raw_input()
 
 	payload_buf = None
 	with open(sys.argv[1], "rb") as f:

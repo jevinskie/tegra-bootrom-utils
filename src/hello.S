@@ -13,6 +13,7 @@ say_hello:
     ldr ip, =write_ep1_in_sync
     mov lr, pc
     bx ip
+    # blx ip
     add sp, sp, #4
     pop {r1}
     bx r1
@@ -22,6 +23,6 @@ say_hello:
     .size   hello_str, Lhello_str_end - hello_str
     .align 4
 hello_str:
-    .asciz "hello, world\n"
+    .asciz "hello, world"
 Lhello_str_end:
     .equ    hello_str_len, . - hello_str
