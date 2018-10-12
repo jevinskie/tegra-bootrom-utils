@@ -231,7 +231,7 @@ def hook_usb_send(uc, address, size, user_data):
 	ch_regs.pop(UC_ARM_REG_PC, None)
 	dump_regs_changed(ch_regs)
 	saved_regs = new_regs
-	uc.setdbg()
+	# uc.setdbg()
 	uc.reg_write(UC_ARM_REG_R0, 0)
 	uc.reg_write(UC_ARM_REG_PC, lr)
 
@@ -268,8 +268,6 @@ def hook_mem_access(uc, access, address, size, value, user_data):
 
 def main(argv):
 	global saved_regs
-
-	# raw_input()
 
 	payload_buf = None
 	with open(sys.argv[1], "rb") as f:

@@ -3,6 +3,7 @@ ENTRY(_start_arm_mode)
 SECTIONS {
 	. = LOAD_ADDR;
 	.text : {
+		*(.text_entry);
 		*(.text*);
 	}
 	.data : {

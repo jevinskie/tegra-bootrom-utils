@@ -16,8 +16,6 @@ OBJS = $(addprefix $(BUILD)/$(TARGET)/, \
 	_start.o \
 	main.o \
 	usb.o \
-	hello.o \
-	dummy.o \
 )
 
 OBJS += $(addprefix $(BUILD)/$(TARGET)/, \
