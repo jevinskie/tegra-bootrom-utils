@@ -1,6 +1,6 @@
 #include "pmc.h"
 
-    .section ".text_entry"
+    .section ".text"
 
     .code 32
     .globl _start_arm_mode
@@ -8,8 +8,6 @@
 _start_arm_mode:
     ldr r0, =_start
     bx r0
-
-    .section ".text"
 
     .code 16
     .globl _start
@@ -21,4 +19,5 @@ _start:
     sub r2, r2, r0
     bl memset
     bl main
+
     b _exit
