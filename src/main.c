@@ -2,16 +2,11 @@
 #include <stddef.h>
 #include <stdio.h>
 
+#include "bootrom.h"
 #include "pmc.h"
 #include "usb.h"
 
 static const char hello[] = "hello, world";
-
-typedef void (*NvOsWaitUS_t)(int us);
-
-void NvOsWaitUS(int us) {
-	((NvOsWaitUS_t)(0xFFF00B9A + 1))(us);
-}
 
 __attribute__((used))
 int main(void) {

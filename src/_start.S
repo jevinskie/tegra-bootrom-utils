@@ -19,5 +19,4 @@ _start:
     sub r2, r2, r0
     bl memset
     bl main
-
     b _exit

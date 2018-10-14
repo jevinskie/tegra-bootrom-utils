@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef __ASSEMBLER__
 #include <stdint.h>
 #endif

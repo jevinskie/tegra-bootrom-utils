@@ -5,15 +5,16 @@
 #include <errno.h>
 #include <sys/stat.h>
 
-#include "usb.h"
+#include "bootrom.h"
 
 /* Buffered output routines for newlib-nano stdio */
 
 static ssize_t stdio_read(int fd, void *buf, size_t count) {
 	(void)fd;
-	int res = usb_recv(buf, count);
+	size_t recv_size;
+	int res = usb_recv_w_ret_len(buf, count, &recv_size);
 	if (!res) {
-		return (ssize_t)count;
+		return (ssize_t)recv_size;
 	} else {
 		errno = EIO;
 		return -1;
@@ -22,9 +23,10 @@ static ssize_t stdio_read(int fd, void *buf, size_t count) {
 
 static ssize_t stdio_write(int fd, const void *buf, size_t count) {
 	(void)fd;
-	int res = usb_send(buf, count);
+	size_t sent_size;
+	int res = usb_send_w_ret_len(buf, count, &sent_size);
 	if (!res) {
-		return (ssize_t)count;
+		return (ssize_t)sent_size;
 	} else {
 		errno = EIO;
 		return -1;
@@ -57,7 +59,7 @@ static int
 ao_putc(char c, FILE *ignore)
 {
 	write_buf[write_len++] = c;
-	if (write_len < sizeof (write_buf))
+	if (write_len < sizeof(write_buf))
 		return 0;
 	return ao_flush(ignore);
 }

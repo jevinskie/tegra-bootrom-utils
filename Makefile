@@ -13,9 +13,10 @@ SOURCEDIR = src
 VPATH = $(dir $(wildcard ./$(SOURCEDIR)/*/)) $(dir $(wildcard ./$(SOURCEDIR)/*/*/))
 
 OBJS = $(addprefix $(BUILD)/$(TARGET)/, \
-	start.o \
+	_start.o \
 	_exit.o \
 	main.o \
+	bootrom.o \
 	usb.o \
 	stdio-bits.o \
 	raise.o \
@@ -29,8 +30,10 @@ ENTRY_POINT_ADDRESS := 0x4000A000
 ARCH := -mcpu=arm7tdmi -mthumb -mthumb-interwork -masm-syntax-unified
 CUSTOMDEFINES := -DBLVERSIONMJ=$(BLVERSION_MAJOR) -DBLVERSIONMN=$(BLVERSION_MINOR) -DENTRY_POINT_ADDRESS=$(ENTRY_POINT_ADDRESS)
 CUSTOMDEFINES += -DDEBUG
-CFLAGS = $(ARCH) -flto-partition=none -flto -fuse-linker-plugin -fuse-ld=gold -Os -g -nostdinc -nostdlib -ffunction-sections -fdata-sections -fomit-frame-pointer -std=gnu11 -Wall -Wextra -isystem /opt/devkitpro/devkitARM/bin/../lib/gcc/arm-none-eabi/8.1.0/include -isystem /Users/jevin/code/tegra/libc/prefix-nolto/lib/newlib-nano/arm-none-eabi/include $(CUSTOMDEFINES)
-LDFLAGS = $(ARCH) -flto-partition=none -flto -fuse-linker-plugin -fuse-ld=gold -Os -g -nostdinc -nostdlib -L/Users/jevin/code/tegra/libc/prefix-nolto/lib/newlib-nano/arm-none-eabi/lib/thumb -lc -lgcc -Wl,--nmagic,--gc-sections,--defsym,LOAD_ADDR=$(ENTRY_POINT_ADDRESS)
+# CFLAGS = $(ARCH) -flto-partition=none -flto -fuse-linker-plugin -fuse-ld=gold -Os -g -nostdinc -nostdlib -ffunction-sections -fdata-sections -fomit-frame-pointer -std=gnu11 -Wall -Wextra -isystem /opt/devkitpro/devkitARM/bin/../lib/gcc/arm-none-eabi/8.1.0/include -isystem /Users/jevin/code/tegra/libc/prefix-nolto/lib/newlib-nano/arm-none-eabi/include $(CUSTOMDEFINES)
+# LDFLAGS = $(ARCH) -flto-partition=none -flto -fuse-linker-plugin -fuse-ld=gold -Os -g -nostdinc -nostdlib -L/Users/jevin/code/tegra/libc/prefix-nolto/lib/newlib-nano/arm-none-eabi/lib/thumb -lc -lgcc -Wl,--nmagic,--gc-sections,--defsym,LOAD_ADDR=$(ENTRY_POINT_ADDRESS)
+CFLAGS = $(ARCH) -Os -g -nostdinc -nostdlib -ffunction-sections -fdata-sections -fomit-frame-pointer -std=gnu11 -Wall -Wextra -isystem /opt/devkitpro/devkitARM/bin/../lib/gcc/arm-none-eabi/8.1.0/include -isystem /Users/jevin/code/tegra/libc/prefix-nolto/lib/newlib-nano/arm-none-eabi/include $(CUSTOMDEFINES)
+LDFLAGS = $(ARCH) -Os -g -nostdinc -nostdlib -L/Users/jevin/code/tegra/libc/prefix-nolto/lib/newlib-nano/arm-none-eabi/lib/thumb -lc -lgcc -Wl,--nmagic,--gc-sections,--defsym,LOAD_ADDR=$(ENTRY_POINT_ADDRESS)
 
 .PHONY: all clean
 
