@@ -4,6 +4,7 @@
 
 enum cmd_type {
 	CMD_TTY = 0x1,
+	CMD_NOTIFY_REBOOT = 0x2,
 };
 
 typedef struct cmd_hdr {

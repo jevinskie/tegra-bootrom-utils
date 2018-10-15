@@ -5,6 +5,13 @@
 
 #define USB_XFER_MAX 0x1000
 
+enum usb_ep {
+	USB_EP_CTRL_OUT	= 0,
+	USB_EP_CTRL_IN	= 1,
+	USB_EP_BULK_OUT	= 2,
+	USB_EP_BULK_IN	= 3,
+};
+
 typedef uint8_t usb_buf_t[USB_XFER_MAX];
 
 extern usb_buf_t usb_recv_buf0;

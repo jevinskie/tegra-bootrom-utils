@@ -14,7 +14,7 @@ VPATH = $(dir $(wildcard ./$(SOURCEDIR)/*/)) $(dir $(wildcard ./$(SOURCEDIR)/*/*
 
 OBJS = $(addprefix $(BUILD)/$(TARGET)/, \
 	_start.o \
-	_exit.o \
+	exit.o \
 	main.o \
 	bootrom.o \
 	usb.o \

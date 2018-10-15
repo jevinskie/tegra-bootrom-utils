@@ -22,4 +22,5 @@ SECTIONS {
 	PROVIDE(usb_recv_buf1 = 0x40004000);
 	PROVIDE(usb_send_buf0 = 0x40005000);
 	PROVIDE(usb_send_buf1 = 0x40006000);
+	PROVIDE(usb_ctx_ptr = 0x40001B30);
 }

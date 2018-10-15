@@ -23,6 +23,7 @@ IRAM_SIZE = 256 * 1024
 RCM_PAYLOAD_ADDR    = 0x4000A000
 
 USB_SEND_ADDR = 0xfff05092
+NvOsWaitUS_ADDR = 0xFFF00B9A
 
 PMC_BASE = 0x7000E400
 PMC_SCRATCH0 = 0x50
@@ -237,6 +238,12 @@ def hook_usb_send(uc, address, size, user_data):
 	uc.reg_write(UC_ARM_REG_R0, 0)
 	uc.reg_write(UC_ARM_REG_PC, lr)
 
+def hook_NvOsWaitUS(uc, address, size, user_data):
+	print(">>> Hooking NvOsWaitUS")
+	(us, lr) = uc.reg_read_batch((UC_ARM_REG_R0, UC_ARM_REG_LR))
+	print(">>> \tus: %d lr: 0x%08x" % (us, lr))
+	uc.reg_write(UC_ARM_REG_PC, lr)
+
 # callback for tracing invalid memory access (READ or WRITE)
 def hook_mem_unmapped(uc, access, address, size, value, user_data):
 	if access == UC_MEM_WRITE_UNMAPPED:
@@ -293,6 +300,8 @@ def main(argv):
 		uc.mem_map(USB_SEND_ADDR & FOURK_ALIGN_MASK, 4096)
 		uc.mem_write(USB_SEND_ADDR, "\xc0\x46\xc0\x46") # thumb nop nop
 		uc.mem_map(PMC_BASE & FOURK_ALIGN_MASK, 4096)
+		uc.mem_map(NvOsWaitUS_ADDR & FOURK_ALIGN_MASK, 4096)
+		uc.mem_write(NvOsWaitUS_ADDR, "\xc0\x46\xc0\x46")
 
 		uc.reg_write(UC_ARM_REG_SP, stack_top)
 		uc.reg_write(UC_ARM_REG_APSR, 0xFFFFFFFF) #All application flags turned on
@@ -305,6 +314,7 @@ def main(argv):
 		uc.hook_add(UC_HOOK_MEM_UNMAPPED, hook_mem_unmapped)
 
 		uc.hook_add(UC_HOOK_CODE, hook_usb_send, begin=USB_SEND_ADDR, end=USB_SEND_ADDR+4)
+		uc.hook_add(UC_HOOK_CODE, hook_NvOsWaitUS, begin=NvOsWaitUS_ADDR, end=NvOsWaitUS_ADDR+4)
 
 		# write machine code to be emulated to memory
 		uc.mem_write(RCM_PAYLOAD_ADDR, binbuf)
