@@ -13,5 +13,5 @@ typedef struct cmd_hdr {
 
 typedef struct cmd_tty {
 	cmd_hdr_t hdr;
-	char tty_buf[];
+	char tty_buf[0];
 } __attribute__((packed)) cmd_tty_t;

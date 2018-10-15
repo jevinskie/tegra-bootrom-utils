@@ -4,8 +4,11 @@
 #include <stdint.h>
 #include <errno.h>
 #include <sys/stat.h>
+#include <string.h>
 
 #include "bootrom.h"
+#include "usb.h"
+#include "cmd.h"
 
 /* Buffered output routines for newlib-nano stdio */
 
@@ -24,9 +27,13 @@ static ssize_t stdio_read(int fd, void *buf, size_t count) {
 static ssize_t stdio_write(int fd, const void *buf, size_t count) {
 	(void)fd;
 	size_t sent_size;
-	int res = usb_send_w_ret_len(buf, count, &sent_size);
+	cmd_tty_t *cmd_tty = (cmd_tty_t *)usb_recv_buf0;
+	cmd_tty->hdr.cmd_type = CMD_TTY;
+	cmd_tty->hdr.cmd_size = sizeof(cmd_hdr_t) + count;
+	memcpy(cmd_tty->tty_buf, buf, count);
+	int res = usb_send_w_ret_len(cmd_tty, count + sizeof(cmd_hdr_t), &sent_size);
 	if (!res) {
-		return (ssize_t)sent_size;
+		return (ssize_t)sent_size - sizeof(cmd_hdr_t);
 	} else {
 		errno = EIO;
 		return -1;
