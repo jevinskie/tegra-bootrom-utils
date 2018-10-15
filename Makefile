@@ -18,6 +18,8 @@ OBJS = $(addprefix $(BUILD)/$(TARGET)/, \
 	main.o \
 	bootrom.o \
 	usb.o \
+	cmd.o \
+	util.o \
 	stdio-bits.o \
 	raise.o \
 )
