@@ -19,6 +19,7 @@ DEFAULT_PID = 0x7330
 
 class cmd_type(enum.IntEnum):
 	CMD_TTY = 0x1
+	CMD_NOTIFY_REBOOT = 0x2
 
 class StructurePrettyPrint(LittleEndianStructure):
 	def __str__(self):
@@ -65,6 +66,11 @@ class cmd_tty(StructureVariableSized):
 	_fields_ = [('hdr', cmd_hdr),]
 	_variable_sized_ = [('tty_buf', c_char)]
 
+class cmd_notify_reboot(StructurePrettyPrint):
+	_pack_ = 1
+	_fields_ = [('hdr', cmd_hdr),
+				('status', c_int)]
+
 class RCMDevice:
 	# Default to the T30 RCM VID and PID.
 	DEFAULT_VID = 0x0955
@@ -99,20 +105,25 @@ class RCMDevice:
 
 def main():
 	rcmdev = RCMDevice()
-	buf = rcmdev.read()
-	print(buf)
-	print(binascii.hexlify(buf))
-	recv_cmd = cmd_hdr.from_buffer_copy(buf)
-	print(recv_cmd)
-	print(recv_cmd.cmd_type)
-	print(recv_cmd.cmd_size)
-	if recv_cmd.cmd_type == cmd_type.CMD_TTY:
-		tty_buf_size = recv_cmd.cmd_size - sizeof(recv_cmd)
-		recv_cmd_tty_t = cmd_tty(variable_sized=(('tty_buf', tty_buf_size),),)
-		recv_cmd_tty = recv_cmd_tty_t.__class__.from_buffer_copy(buf)
-		print(recv_cmd_tty)
-		tty_str = recv_cmd_tty.tty_buf.decode('utf-8')
-		print(tty_str)
+	while True:
+		recv_buf = rcmdev.read()
+		print(recv_buf)
+		print(binascii.hexlify(recv_buf))
+		recv_cmd = cmd_hdr.from_buffer_copy(recv_buf)
+		print(recv_cmd)
+		print(recv_cmd.cmd_type)
+		print(recv_cmd.cmd_size)
+		if recv_cmd.cmd_type == cmd_type.CMD_TTY:
+			tty_buf_size = recv_cmd.cmd_size - sizeof(recv_cmd)
+			recv_cmd_tty_t = cmd_tty(variable_sized=(('tty_buf', tty_buf_size),),)
+			recv_cmd_tty = recv_cmd_tty_t.__class__.from_buffer_copy(recv_buf)
+			print(recv_cmd_tty)
+			tty_str = recv_cmd_tty.tty_buf.decode('utf-8')
+			print(tty_str)
+		if recv_cmd.cmd_type == cmd_type.CMD_NOTIFY_REBOOT:
+			recv_cmd_notify_reboot = cmd_notify_reboot.from_buffer_copy(recv_buf)
+			print("rebooted! status: {:d}".format(recv_cmd_notify_reboot.status))
+			return 0
 	return 0
 
 if __name__ == '__main__':

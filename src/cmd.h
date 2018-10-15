@@ -16,3 +16,8 @@ typedef struct cmd_tty {
 	cmd_hdr_t hdr;
 	char tty_buf[0];
 } __attribute__((packed)) cmd_tty_t;
+
+typedef struct cmd_notify_reboot {
+	cmd_hdr_t hdr;
+	int status;
+} __attribute__((packed)) cmd_notify_reboot_t;

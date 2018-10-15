@@ -27,11 +27,12 @@ static ssize_t stdio_read(int fd, void *buf, size_t count) {
 static ssize_t stdio_write(int fd, const void *buf, size_t count) {
 	(void)fd;
 	size_t sent_size;
-	cmd_tty_t *cmd_tty = (cmd_tty_t *)usb_recv_buf0;
+	cmd_tty_t *cmd_tty = (cmd_tty_t *)usb_send_buf0;
 	cmd_tty->hdr.cmd_type = CMD_TTY;
 	cmd_tty->hdr.cmd_size = sizeof(cmd_hdr_t) + count;
 	memcpy(cmd_tty->tty_buf, buf, count);
 	int res = usb_send_w_ret_len(cmd_tty, count + sizeof(cmd_hdr_t), &sent_size);
+	while (usb_get_ep_status(1) == 1);
 	if (!res) {
 		return (ssize_t)sent_size - sizeof(cmd_hdr_t);
 	} else {
