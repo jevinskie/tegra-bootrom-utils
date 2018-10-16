@@ -11,9 +11,9 @@ void _exit(int status) {
 	PMC(PMC_SCRATCH1) = status;
 	PMC(PMC_SCRATCH0) = (1 << 1);
 
-	usb_clear_endpoint(usb_ctx_ptr, USB_EP_BULK_OUT);
+	// usb_clear_endpoint(usb_ctx_ptr, USB_EP_BULK_OUT);
 
-	cmd_notify_reboot_t *cmd = (cmd_notify_reboot_t *)usb_send_buf0;
+	cmd_notify_reboot_t *cmd = (cmd_notify_reboot_t *)usb_send_bufs[active_usb_send_buf_idx ^ 1];
 	cmd->hdr.cmd_type = CMD_NOTIFY_REBOOT;
 	cmd->hdr.cmd_size = sizeof(*cmd);
 	cmd->status = status;

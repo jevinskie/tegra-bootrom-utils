@@ -5,7 +5,10 @@ import copy
 from ctypes import *
 import enum
 import os
+import signal
 import sys
+import threading
+import time
 
 # os.environ['PYUSB_DEBUG'] = 'debug'
 import usb
@@ -20,6 +23,7 @@ DEFAULT_PID = 0x7330
 class cmd_type(enum.IntEnum):
 	CMD_TTY = 0x1
 	CMD_NOTIFY_REBOOT = 0x2
+	CMD_ACK = 0x3
 
 class StructurePrettyPrint(LittleEndianStructure):
 	def __str__(self):
@@ -69,7 +73,7 @@ class cmd_tty(StructureVariableSized):
 class cmd_notify_reboot(StructurePrettyPrint):
 	_pack_ = 1
 	_fields_ = [('hdr', cmd_hdr),
-				('status', c_int)]
+				('status', c_int32)]
 
 class RCMDevice:
 	# Default to the T30 RCM VID and PID.
@@ -89,7 +93,7 @@ class RCMDevice:
 			else:
 				raise IOError("No TegraRCM device found?")
 
-	def read(self, length=USB_XFER_MAX, timeout=3000):
+	def read(self, length=USB_XFER_MAX, timeout=0):
 		assert length <= USB_XFER_MAX
 		""" Reads data from the RCM protocol endpoint. """
 		return bytes(self.dev.read(0x81, length, timeout))
@@ -103,10 +107,17 @@ class RCMDevice:
 		assert len(data) <= USB_XFER_MAX
 		return self.dev.write(0x01, data, timeout)
 
+def send_ack(rcmdev):
+	ack = cmd_hdr()
+	ack.cmd_size = sizeof(ack)
+	ack.cmd_type = cmd_type.CMD_ACK
+	print('ack: {}'.format(ack))
+	rcmdev.write(bytes(ack))
+
 def main():
 	rcmdev = RCMDevice()
 	while True:
-		recv_buf = rcmdev.read()
+		recv_buf = rcmdev.read(sizeof(cmd_hdr))
 		print(recv_buf)
 		print(binascii.hexlify(recv_buf))
 		recv_cmd = cmd_hdr.from_buffer_copy(recv_buf)
@@ -116,15 +127,27 @@ def main():
 		if recv_cmd.cmd_type == cmd_type.CMD_TTY:
 			tty_buf_size = recv_cmd.cmd_size - sizeof(recv_cmd)
 			recv_cmd_tty_t = cmd_tty(variable_sized=(('tty_buf', tty_buf_size),),)
+			recv_buf += rcmdev.read(tty_buf_size)
 			recv_cmd_tty = recv_cmd_tty_t.__class__.from_buffer_copy(recv_buf)
 			print(recv_cmd_tty)
 			tty_str = recv_cmd_tty.tty_buf.decode('utf-8')
 			print(tty_str)
+			send_ack(rcmdev)
 		if recv_cmd.cmd_type == cmd_type.CMD_NOTIFY_REBOOT:
 			recv_cmd_notify_reboot = cmd_notify_reboot.from_buffer_copy(recv_buf)
 			print("rebooted! status: {:d}".format(recv_cmd_notify_reboot.status))
 			return 0
 	return 0
 
+class Runner(threading.Thread):
+	def run(self):
+		os._exit(main())
+
+def sigint_handler(signum, frame):
+	os._exit(1)
+
 if __name__ == '__main__':
-	sys.exit(main())
+	signal.signal(signal.SIGINT, sigint_handler)
+	Runner().start()
+	while True:
+		time.sleep(0.1)

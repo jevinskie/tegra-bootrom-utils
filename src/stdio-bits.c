@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdio.h>
 #include <math.h>
 #include <unistd.h>
@@ -24,15 +25,29 @@ static ssize_t stdio_read(int fd, void *buf, size_t count) {
 	}
 }
 
+#if 0
 static ssize_t stdio_write(int fd, const void *buf, size_t count) {
 	(void)fd;
 	size_t sent_size;
+	int ep_status;
 	cmd_tty_t *cmd_tty = (cmd_tty_t *)usb_send_buf0;
 	cmd_tty->hdr.cmd_type = CMD_TTY;
 	cmd_tty->hdr.cmd_size = sizeof(cmd_hdr_t) + count;
 	memcpy(cmd_tty->tty_buf, buf, count);
 	int res = usb_send_w_ret_len(cmd_tty, count + sizeof(cmd_hdr_t), &sent_size);
-	while (usb_get_ep_status(1) == 1);
+	do {
+		ep_status = usb_get_ep_status(1);
+	}
+	while (ep_status == 1 || ep_status == 4);
+	cmd_hdr_t *ack = (cmd_hdr_t *)usb_recv_buf0;
+	ack->cmd_size = 0;
+	ack->cmd_type = 0;
+	do {
+		usb_recv(ack, sizeof(*ack));
+		ep_status = usb_get_ep_status(0);
+	}
+	while (ep_status == 1 || ep_status == 4);
+	assert(ack->cmd_type == CMD_ACK);
 	if (!res) {
 		return (ssize_t)sent_size - sizeof(cmd_hdr_t);
 	} else {
@@ -40,6 +55,24 @@ static ssize_t stdio_write(int fd, const void *buf, size_t count) {
 		return -1;
 	}
 }
+#else
+static ssize_t stdio_write(int fd, const void *buf, size_t count) {
+	(void)fd;
+	size_t sent_size;
+	int ep_status;
+	cmd_tty_t *cmd_tty = (cmd_tty_t *)usb_send_bufs[active_usb_send_buf_idx];
+	cmd_tty->hdr.cmd_type = CMD_TTY;
+	cmd_tty->hdr.cmd_size = sizeof(cmd_hdr_t) + count;
+	memcpy(cmd_tty->tty_buf, buf, count);
+	int res = usb_send_w_ret_len(cmd_tty, count + sizeof(cmd_hdr_t), &sent_size);
+	if (!res) {
+		return (ssize_t)sent_size - sizeof(cmd_hdr_t);
+	} else {
+		errno = EIO;
+		return -1;
+	}
+}
+#endif
 
 static char write_buf[512];
 static size_t write_len;
